@@ -1,0 +1,38 @@
+!pip install netCDF4
+
+from netCDF4 import Dataset
+import xarray as xr 
+import datetime as dt 
+import pandas as pd 
+import time
+from tqdm import tqdm # only for the nice progress bar 
+
+## register here: https://datalsasaf.lsasvcs.ipma.pt/  : select: "click here to register" 
+user="bemartine"
+passwd="Tristan1!"
+server_url=f"https://{user}:{passwd}@thredds.lsasvcs.ipma.pt/thredds/dodsC"
+server_url=f"https://{user}:{passwd}@datalsasaf.lsasvcs.ipma.pt/PRODUCTS"
+## filename to be generated as:
+## fname=f"{server_url}{product_path}/YYYY/MM/DD/{product_fname}_SLOT.nc" 
+## Navigate here to find product_path and product_fname https://thredds.lsasvcs.ipma.pt/thredds/catalog/catalog.html
+
+product_path="/MSG/MLST/NETCDF/"
+product_fname="NETCDF4_LSASAF_MSG_LST_MSG-Disk"
+NcvarsLoad=['LST'] # list of netcdf variables to load from remote files 
+
+## Define start/end to load data 
+dstart=dt.datetime(2022,7,1)
+dend=dt.datetime(2022,8,1)
+# frequency to extract data (understood by pandas)
+product_freq="h" 
+
+## Define latitude/longitude domain to load [lon_min,lon_max,lat_min,lat_max]
+LaLoBox = [-1,-1,39.5,39.5] # example for a single point in Valencia (Iberian Peninsula)
+## LaLoBox = [-10,20,36,55] # example for Wester EU 
+LaLoBox = [ -5,-5,40,40] # example to extract a single point : 5W, 40N
+# list with Lon/Lat slices to be used by xarray to cut domain
+LaLoSlice = [ slice(LaLoBox[0],LaLoBox[1]),slice(LaLoBox[3],LaLoBox[2])] ## swapped for MSG
+
+## generate datelist 
+dlist = pd.date_range(dstart,dend,freq=product_freq)
+print("Will load:",len(dlist),' files')
